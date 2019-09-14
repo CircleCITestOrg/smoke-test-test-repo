@@ -1,7 +1,12 @@
+# features/2.1
 version: 2.1
 jobs:
   build:
     docker:
-      - image: "circleci/clojure:latest"
+      - image: "circleci/clojure:latest" # Already has docker client installed
     steps:
-      - run: exit 0
+      - setup_remote_docker
+      - run: echo "FROM circleci/clojure:latest" > Dockerfile
+      - run: echo "CMD exit 0" >> Dockerfile
+      - run: docker build -t test:test .
+      - run: docker run --rm -it test:test
