@@ -1,7 +1,24 @@
-version: 2.1
+# features/contexts
+version: 2
 jobs:
-  build:
+  test-context:
     docker:
       - image: "circleci/clojure:latest"
     steps:
-      - run: exit 0
+      - run:
+          name: Check for context variable
+          command: |
+            if [[ -n "${CONTEXT_SMOKE_TEST_RESULT}" ]]; then
+              echo "Context is present."
+              exit 0
+            else
+              echo "Context variable not present!"
+              exit 1
+            fi
+
+workflows:
+  version: 2
+  my-workflow:
+    jobs:
+      - test-context:
+          context: smoke-test
