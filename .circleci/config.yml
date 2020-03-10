@@ -1,7 +1,31 @@
+# features/2.1
 version: 2.1
+
 jobs:
   build:
     docker:
       - image: "circleci/clojure:latest"
+    working_directory: /tmp
     steps:
-      - run: exit 0
+      - run: mkdir artifacts
+      - run:
+          name: Generate a Random Artifact
+          command: head -c 1k /dev/urandom > artifacts/file.bin
+      - run:
+          name: Calculate Artifact Checksum
+          command: sha1sum artifacts/* > artifacts.checksum
+      - store_artifacts:
+          path: /tmp/artifacts
+      - run:
+          name: Clean Artifacts Directory
+          command: rm -rf artifacts/*
+      - run:
+          name: Retrieve Artifact URLs
+          command: curl --fail -u "$CIRCLE_TOKEN:" "https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BUILD_NUM/artifacts" | grep -o 'https://[^"]*' > artifacts.urls
+      - run:
+          name: Download Artifacts
+          working_directory: /tmp/artifacts
+          command: for url in "$(cat /tmp/artifacts.urls)"; do curl --fail -u "$CIRCLE_TOKEN:" -O "$url" || exit 1; done
+      - run:
+          name: Verify Artifact Checksums
+          command: sha1sum --check artifacts.checksum
