@@ -1,7 +1,7 @@
-version: 2.1
+# features/macos
+version: 2
 jobs:
   build:
-    docker:
-      - image: "circleci/clojure:latest"
+    macos: true
     steps:
       - run: exit 0
