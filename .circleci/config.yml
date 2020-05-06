@@ -1,7 +1,7 @@
-version: 2.1
+# features/machine
+version: 2
 jobs:
   build:
-    docker:
-      - image: "circleci/clojure:latest"
+    machine: true
     steps:
       - run: exit 0
