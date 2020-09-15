@@ -1,7 +1,42 @@
+# features/workspaces
 version: 2.1
-jobs:
-  build:
+
+executors:
+  my-executor:
     docker:
       - image: "circleci/clojure:latest"
+    working_directory: /tmp
+
+jobs:
+  upstream:
+    executor: my-executor
     steps:
-      - run: exit 0
+      - run: mkdir -p workspace
+      - run: echo "Hello" > workspace/important-data
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - important-data
+
+  downstream:
+    executor: my-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: |
+          if [[ $(cat /tmp/workspace/important-data) == "Hello" ]]; then
+            echo "It worked!"
+          else
+            echo "My important data is missing!"
+            exit 1
+          fi
+
+workflows:
+  version: 2.1
+
+  build:
+    jobs:
+      - upstream
+      - downstream:
+          requires:
+            - upstream
